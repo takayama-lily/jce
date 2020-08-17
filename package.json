@@ -1,17 +1,22 @@
 {
   "name": "jce",
-  "version": "0.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "JCE reader and writer for JavaScript",
+  "main": "jce.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/takayama-lily/jce.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "takayama <takayama@foxmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "jce-protocol",
+    "ttlv",
+    "serialization"
+  ],
   "bugs": {
     "url": "https://github.com/takayama-lily/jce/issues"
   },
