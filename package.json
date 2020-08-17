@@ -1,6 +1,6 @@
 {
   "name": "jce",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JCE reader and writer for JavaScript",
   "main": "jce.js",
   "scripts": {

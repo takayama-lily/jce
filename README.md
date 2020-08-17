@@ -4,35 +4,33 @@
 
 **Install with npm:**
 
-```
-$ npm i jce
+```shell
+# npm i jce
 ```
 
 **Example:**
 
 ```js
-const jce = require("jce")
+const jce = require("jce");
 
 const struct = {
     foo: 0, //tag0
     bar: 1, //tag1
-    baz: [  //tag2, nested
-        2,
-        {
-            qaz: 0, //nested tag0
-        }
-    ]
-}
+    baz: 2  //tag2
+};
 const object = {
     foo: 12.34,
     bar: "bar123",
     baz: {
-        qaz: [1, 2]
+        qaz: [Buffer.from("abcdef"), 12n]
     }
-}
+};
 const encoded = jce.encode(object, struct);
 const decoded = jce.decode(encoded, struct);
 
 console.log(encoded);
 console.log(decoded);
 ```
+
+**Nesting Usage:**  
+[test.js](./test.js)
