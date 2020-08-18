@@ -4,6 +4,7 @@
  */
 const Readable = require("stream").Readable;
 class JceError extends Error {};
+const BUF0 = Buffer.alloc(0);
 
 /**
  * @typedef {Object} JceStruct jce data struct
@@ -76,9 +77,9 @@ function readBody(stream, type) {
         case TYPE_DOUBLE:
             return stream.read(8).readDoubleBE();
         case TYPE_STRING1:
-            return stream.read(stream.read(1).readUInt8()).toString(_encoding);
+            return (stream.read(stream.read(1).readUInt8())??BUF0).toString(_encoding);
         case TYPE_STRING4:
-            return stream.read(stream.read(4).readUInt32BE()).toString(_encoding);
+            return (stream.read(stream.read(4).readUInt32BE())??BUF0).toString(_encoding);
         case TYPE_MAP:
             len = readElement(stream).value;
             const map = {};
@@ -104,7 +105,7 @@ function readBody(stream, type) {
         case TYPE_SIMPLE_LIST:
             readHead(stream);
             len = readElement(stream).value;
-            return stream.read(len);
+            return stream.read(len)??BUF0;
         default:
             throw new JceError("unknown jce type: " + type)
     }
@@ -136,12 +137,12 @@ function skipField(stream, type) {
         case TYPE_STRING1:
             len = stream.read(1);
             chunk.push(len);
-            chunk.push(stream.read(len.readUInt8()));
+            chunk.push(stream.read(len.readUInt8())??BUF0);
             break;
         case TYPE_STRING4:
             len = stream.read(4);
             chunk.push(len);
-            chunk.push(stream.read(len.readUInt32BE()));
+            chunk.push(stream.read(len.readUInt32BE())??BUF0);
             break;
         case TYPE_LIST:
         case TYPE_MAP:
@@ -155,7 +156,7 @@ function skipField(stream, type) {
             chunk.push(raw);
             len = readBody(stream, type);
             chunk.push(createBody(type, len));
-            chunk.push(stream.read(len));
+            chunk.push(stream.read(len)??BUF0);
             break;
     }
     return Buffer.concat(chunk);
