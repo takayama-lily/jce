@@ -29,13 +29,14 @@ const TAG_MAP_K = 0;
 const TAG_MAP_V = 1;
 const TAG_LIST_E = 0;
 const TAG_BYTES = 0;
+const TAG_LENGTH = 0;
 const TAG_STRUCT_END = 0;
 
 let _encoding = "utf8";
 
 /**
  * @param {Readable} stream 
- * @returns {Object} {tag: UInt8, type: UInt8}
+ * @returns {Object} {tag: UInt8, type: UInt8, raw: Buffer}
  */
 function readHead(stream, return_raw = false) {
     let raw = stream.read(1);
@@ -79,7 +80,7 @@ function readBody(stream, type) {
         case TYPE_STRING4:
             return stream.read(stream.read(4).readUInt32BE()).toString(_encoding);
         case TYPE_MAP:
-            len = stream.read(4).readUInt32BE();
+            len = readElement(stream).value;
             const map = {};
             while(len > 0) {
                 map[readElement(stream).value.toString(_encoding)] = readElement(stream).value;
@@ -87,7 +88,7 @@ function readBody(stream, type) {
             }
             return map;
         case TYPE_LIST:
-            len = stream.read(4).readUInt32BE();
+            len = readElement(stream).value;
             const list = [];
             while(len > 0) {
                 list.push(readElement(stream).value);
@@ -102,7 +103,8 @@ function readBody(stream, type) {
             return 0;
         case TYPE_SIMPLE_LIST:
             readHead(stream);
-            return stream.read(stream.read(4).readUInt32BE());
+            len = readElement(stream).value;
+            return stream.read(len);
         default:
             throw new JceError("unknown jce type: " + type)
     }
@@ -125,8 +127,6 @@ function skipField(stream, type) {
             break;
         case TYPE_INT32:
         case TYPE_FLOAT:
-        case TYPE_LIST:
-        case TYPE_MAP:
             chunk.push(stream.read(4));
             break;
         case TYPE_INT64:
@@ -143,15 +143,19 @@ function skipField(stream, type) {
             chunk.push(len);
             chunk.push(stream.read(len.readUInt32BE()));
             break;
+        case TYPE_LIST:
+        case TYPE_MAP:
         case TYPE_STRUCT_BEGIN:
         case TYPE_STRUCT_END:
         case TYPE_ZERO:
             break;
         case TYPE_SIMPLE_LIST:
             chunk.push(stream.read(1));
-            len = stream.read(4);
-            chunk.push(len);
-            chunk.push(stream.read(len.readUInt32BE()));
+            const {type, raw} = readHead(stream, true);
+            chunk.push(raw);
+            len = readBody(stream, type);
+            chunk.push(createBody(type, len));
+            chunk.push(stream.read(len));
             break;
     }
     return Buffer.concat(chunk);
@@ -282,14 +286,10 @@ function createBody(type, value) {
                 body.push(createElement(TAG_MAP_K, k));
                 body.push(createElement(TAG_MAP_V, value[k]));
             }
-            len = Buffer.alloc(4);
-            len.writeUInt32BE(n);
-            body.unshift(len);
+            body.unshift(createElement(TAG_LENGTH, n));
             return Buffer.concat(body);
         case TYPE_LIST:
-            len = Buffer.alloc(4);
-            len.writeUInt32BE(value.length);
-            body = [len];
+            body = [createElement(TAG_LENGTH, value.length)];
             for (let i = 0; i < value.length; ++i) {
                 body.push(createElement(TAG_LIST_E, value[i]));
             }
@@ -299,9 +299,7 @@ function createBody(type, value) {
         case TYPE_ZERO:
             return Buffer.alloc(0);
         case TYPE_SIMPLE_LIST:
-            len = Buffer.alloc(4);
-            len.writeUInt32BE(value.length);
-            return Buffer.concat([createHead(0, TAG_BYTES), len, value]);
+            return Buffer.concat([createHead(0, TAG_BYTES), createElement(TAG_LENGTH, value.length), value]);
     }
 }
 

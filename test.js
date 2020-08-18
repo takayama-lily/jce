@@ -13,7 +13,8 @@ const struct = {
     edc: 2,
     rfc: 4,
     tgb: 5,
-    yhn: 255
+    yhn: 255,
+    ppp:6
 };
 
 const object_nested = {
@@ -31,7 +32,8 @@ const object = {
     tgb: {
         a:Buffer.from("123"), b:[1,"1"]
     },
-    yhn: undefined
+    yhn: undefined,
+    ppp: 45
 };
 
 var encoded, decoded, encoded_nested, decoded_nested;
