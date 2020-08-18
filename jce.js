@@ -388,11 +388,10 @@ function decode(blob, struct) {
  */
 function encode(object, struct) {
     const elements = [];
-    for (const name of Object.keys(object)) {
-        const tag = struct[name];
-        if (tag === undefined)
-            throw new JceError("Unknown field in the struct: " + name);
-        elements.push(createElement(tag, object[name]));
+    for (const name of Object.keys(struct)) {
+        if (!object.hasOwnProperty(name))
+            continue;
+        elements.push(createElement(struct[name], object[name]));
     }
     return Buffer.concat(elements);
 }
