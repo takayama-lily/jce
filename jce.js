@@ -202,23 +202,6 @@ function readElement(stream) {
     };
 }
 
-/**
- * @param {Readable} stream 
- * @param {JceStruct} struct 
- * @returns {Object}
- */
-function readFrom(stream, struct) {
-    const result = {};
-    const keys = Object.keys(struct);
-    while(stream.readableLength) {
-        const {tag, value} = readElement(stream, struct);
-        const name = keys.find((v)=>struct[v]===tag);
-        if (name)
-            result[name] = value;
-    }
-    return result;
-}
-
 //------------------------------------------------------------------
 
 class Nested {
@@ -359,7 +342,7 @@ function createElement(tag, value) {
 //--------------------------------------------------------------------
 
 /**
- * 设置字符串的编码
+ * 设置字符串编码
  * @see https://nodejs.org/dist/latest/docs/api/buffer.html#buffer_buffers_and_character_encodings
  * @param {String} encoding
  * @returns {void}
@@ -372,35 +355,62 @@ function setEncoding(encoding = "utf8") {
  * 调用此函数进行jce解码
  * 嵌套结构会跳过并返回此段buffer，需要再次decode
  * @param {Buffer} blob 
- * @param {JceStruct} struct 
- * @returns {Object} 可读键值对
+ * @param {JceStruct|undefined} struct undefined时tag作为键返回
+ * @returns {Object} 键值对
  */
-function decode(blob, struct) {
+function decode(blob, struct = undefined) {
     const stream = Readable.from(blob, {objectMode: false});
     stream.read(0);
-    return readFrom(stream, struct);
+    const result = {};
+    while(stream.readableLength) {
+        const {tag, value} = readElement(stream, struct);
+        if (struct) {
+            const name = Object.keys(struct).find((v)=>struct[v]===tag);
+            if (name)
+                result[name] = value;
+        } else {
+            result[tag] = value;
+        }
+    }
+    return result;
 }
 
 /**
  * 调用此函数进行jce编码
- * @param {Object} object 可读键值对
- * @param {JceStruct} struct 
+ * @param {Object|Array} object 键值对或数组(值为null或undefined自动跳过此tag)
+ * @param {JceStruct|undefined} struct undefined时取object的键为tag
  * @returns {Buffer}
  */
-function encode(object, struct) {
+function encode(object, struct = undefined) {
     const elements = [];
-    for (const name of Object.keys(struct)) {
-        if (!object.hasOwnProperty(name))
-            continue;
-        elements.push(createElement(struct[name], object[name]));
+    if (!struct) {
+        if (Array.isArray(object)) {
+            for (let i = 0; i < object.length; ++i) {
+                if (object[i] === null || object[i] === undefined)
+                    continue;
+                elements.push(createElement(i, object[i]));
+            }
+        } else {
+            for (let i of Object.keys(object)) {
+                if (object[i] === null || object[i] === undefined)
+                    continue;
+                elements.push(createElement(parseInt(i), object[i]));
+            }
+        }
+    } else {
+        for (const name of Object.keys(struct)) {
+            if (!object.hasOwnProperty(name))
+                continue;
+            elements.push(createElement(struct[name], object[name]));
+        }
     }
     return Buffer.concat(elements);
 }
 
 /**
  * 嵌套结构数据必须调用此函数创建，暂不支持在struct中直接定义
- * @param {Object} object 
- * @param {JceStruct} struct 
+ * @param {Object|Array} object 
+ * @param {JceStruct|undefined} struct 
  * @returns {Nested}
  */
 function encodeNested(object, struct) {

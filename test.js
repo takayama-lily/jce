@@ -52,3 +52,13 @@ console.log(encoded);
 console.log(encoded_nested);
 console.log(decoded);
 console.log(decoded_nested);
+
+const encoded_arr = jce.encode([0,1,2,"abc",null,undefined,3.3,{a:1},[666,Buffer.from("qaz")]])
+const decoded_arr = jce.decode(encoded_arr)
+console.log(encoded_arr)
+console.log(decoded_arr)
+
+const encoded_map = jce.encode({0:1,3:"abc",5:[1,2,3]})
+const decoded_map = jce.decode(encoded_map)
+console.log(encoded_map)
+console.log(decoded_map)
