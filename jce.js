@@ -77,9 +77,11 @@ function readBody(stream, type) {
         case TYPE_DOUBLE:
             return stream.read(8).readDoubleBE();
         case TYPE_STRING1:
-            return (stream.read(stream.read(1).readUInt8())??BUF0).toString(_encoding);
+            len = stream.read(1).readUInt8();
+            return len > 0 ? stream.read(len).toString(_encoding) : "";
         case TYPE_STRING4:
-            return (stream.read(stream.read(4).readUInt32BE())??BUF0).toString(_encoding);
+            len = stream.read(4).readUInt32BE();
+            return len > 0 ? stream.read(len).toString(_encoding) : "";
         case TYPE_MAP:
             len = readElement(stream).value;
             const map = {};
@@ -105,7 +107,7 @@ function readBody(stream, type) {
         case TYPE_SIMPLE_LIST:
             readHead(stream);
             len = readElement(stream).value;
-            return stream.read(len)??BUF0;
+            return len > 0 ? stream.read(len) : BUF0;
         default:
             throw new JceError("unknown jce type: " + type)
     }
@@ -118,7 +120,7 @@ function readBody(stream, type) {
  */
 function skipField(stream, type) {
     const chunk = [];
-    var len;
+    var len, l;
     switch (type) {
         case TYPE_INT8:
             chunk.push(stream.read(1));
@@ -137,12 +139,14 @@ function skipField(stream, type) {
         case TYPE_STRING1:
             len = stream.read(1);
             chunk.push(len);
-            chunk.push(stream.read(len.readUInt8())??BUF0);
+            l = len.readUInt8();
+            chunk.push(l>0?stream.read(l):BUF0);
             break;
         case TYPE_STRING4:
             len = stream.read(4);
             chunk.push(len);
-            chunk.push(stream.read(len.readUInt32BE())??BUF0);
+            l = len.readUInt32BE();
+            chunk.push(l>0?stream.read(l):BUF0);
             break;
         case TYPE_LIST:
         case TYPE_MAP:
@@ -156,7 +160,7 @@ function skipField(stream, type) {
             chunk.push(raw);
             len = readBody(stream, type);
             chunk.push(createBody(type, len));
-            chunk.push(stream.read(len)??BUF0);
+            chunk.push(len>0?stream.read(len):BUF0);
             break;
     }
     return Buffer.concat(chunk);
