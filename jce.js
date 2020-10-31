@@ -311,7 +311,7 @@ function createElement(tag, value) {
         case "object":
             if (value === null)
                 throw new JceError("Unsupported type: null");
-            if (value instanceof Buffer)
+            if (value instanceof Buffer || value instanceof Uint8Array || value instanceof ArrayBuffer)
                 type = TYPE_SIMPLE_LIST;
             else
                 type = Array.isArray(value) ? TYPE_LIST : TYPE_MAP;
