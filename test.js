@@ -37,6 +37,8 @@ const object = {
 };
 
 var encoded, decoded, encoded_nested, decoded_nested;
+
+    
 console.time();
 for (let i = 0; i < 1; ++i) {
 	// jce.setEncoding("utf8");
@@ -44,8 +46,8 @@ for (let i = 0; i < 1; ++i) {
     object.yhn = encoded_nested
 	encoded = jce.encode(object, struct);
 	// jce.setEncoding("raw");
-	decoded = jce.decode(encoded, struct);
-    decoded_nested = jce.decode(decoded.yhn, struct_nested);
+	decoded = jce.decode(encoded);
+    // decoded_nested = jce.decode(decoded.yhn, struct_nested);
 }
 console.timeEnd();
 console.log(encoded);
@@ -53,12 +55,12 @@ console.log(encoded_nested);
 console.log(decoded);
 console.log(decoded_nested);
 
-const encoded_arr = jce.encode([0,1,2,"abc",null,undefined,3.3,{a:1},[666,Buffer.from("qaz")]])
-const decoded_arr = jce.decode(encoded_arr)
-console.log(encoded_arr)
-console.log(decoded_arr)
+// const encoded_arr = jce.encode([0,1,2,"abc",null,undefined,3.3,{a:1},[666,Buffer.from("qaz")]])
+// const decoded_arr = jce.decode(encoded_arr)
+// console.log(encoded_arr)
+// console.log(decoded_arr)
 
-const encoded_map = jce.encode({0:1,3:"abc",5:[1,2,3]})
-const decoded_map = jce.decode(encoded_map)
-console.log(encoded_map)
-console.log(decoded_map)
+// const encoded_map = jce.encode({0:1,3:"abc",5:[1,2,3]})
+// const decoded_map = jce.decode(encoded_map)
+// console.log(encoded_map)
+// console.log(decoded_map)

@@ -44,7 +44,7 @@ const object = {
     bar: "bar123"
 };
 const encoded = jce.encode(object, struct);
-const decoded = jce.decode(encoded, struct);
+const decoded = jce.decode(encoded);
 ```
 
 **Nesting Usage:**  
