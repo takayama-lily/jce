@@ -90,7 +90,7 @@ function readBody(stream, type) {
         len = readElement(stream).value;
         const map = Object.create(null);
         while(len > 0) {
-            map[readElement(stream).value.toString(_encoding)] = readElement(stream).value;
+            map[readElement(stream).value] = readElement(stream).value;
             --len;
         }
         return map;
