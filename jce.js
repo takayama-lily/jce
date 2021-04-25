@@ -167,32 +167,32 @@ function createBody(type, value) {
     case TYPE_INT8:
         return Buffer.from([parseInt(value)]);
     case TYPE_INT16:
-        body = Buffer.alloc(2);
+        body = Buffer.allocUnsafe(2);
         body.writeInt16BE(parseInt(value));
         return body;
     case TYPE_INT32:
-        body = Buffer.alloc(4);
+        body = Buffer.allocUnsafe(4);
         body.writeInt32BE(parseInt(value));
         return body;
     case TYPE_INT64:
-        body = Buffer.alloc(8);
+        body = Buffer.allocUnsafe(8);
         body.writeBigInt64BE(BigInt(value));
         return body;
     case TYPE_FLOAT:
-        body = Buffer.alloc(4);
+        body = Buffer.allocUnsafe(4);
         body.writeFloatBE(value);
         return body;
     case TYPE_DOUBLE:
-        body = Buffer.alloc(8);
+        body = Buffer.allocUnsafe(8);
         body.writeDoubleBE(value);
         return body;
     case TYPE_STRING1:
         len = Buffer.from([value.length]);
-        return Buffer.concat([len, Buffer.from(value)]);
+        return Buffer.concat([len, value]);
     case TYPE_STRING4:
-        len = Buffer.alloc(4);
+        len = Buffer.allocUnsafe(4);
         len.writeUInt32BE(value.length);
-        return Buffer.concat([len, Buffer.from(value)]);
+        return Buffer.concat([len, value]);
     case TYPE_MAP:
         body = [];
         let n = 0;
@@ -212,7 +212,7 @@ function createBody(type, value) {
     // case TYPE_STRUCT_BEGIN:
     // case TYPE_STRUCT_END:
     case TYPE_ZERO:
-        return Buffer.alloc(0);
+        return BUF0;
     case TYPE_SIMPLE_LIST:
         return Buffer.concat([createHead(0, TAG_BYTES), createElement(TAG_LENGTH, value.length), value]);
     }
